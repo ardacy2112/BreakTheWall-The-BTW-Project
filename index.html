@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BreakTheWall - Releases</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --border-color: #334155;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+        }
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            color: var(--accent-color);
+        }
+        select {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .description {
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .release-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: border-color 0.2s;
+        }
+        .release-card:hover {
+            border-color: var(--accent-color);
+        }
+        .release-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        .release-title {
+            margin: 0;
+            font-size: 18px;
+            color: var(--accent-color);
+        }
+        .release-tag {
+            background-color: #334155;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .asset-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .asset-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #0f172a;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        .asset-info span {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: block;
+        }
+        .download-btn {
+            background-color: var(--accent-color);
+            color: #0f172a;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .download-btn:hover {
+            background-color: var(--accent-hover);
+        }
+        .loading, .error {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1 id="mainTitle">📦 BreakTheWall - Releases</h1>
+        <select id="langSelect" onchange="changeLanguage()">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="ru">Русский</option>
+            <option value="es">Español</option>
+        </select>
+    </header>
+
+    <div class="description" id="desc">
+        Deponuza eklediğiniz tüm Releases sürümleri ve APK dosyaları aşağıda otomatik olarak listelenmektedir.
+    </div>
+
+    <div id="content">
+        <div class="loading" id="loadingText">Sürümler yükleniyor...</div>
+    </div>
+</div>
+
+<script>
+    const GITHUB_USER = 'ardacy2112';
+    const GITHUB_REPO = 'BreakTheWall-The-BTW-Project';
+
+    const translations = {
+        tr: {
+            title: "📦 BreakTheWall - Releases",
+            desc: "Deponuza eklediğiniz tüm Releases sürümleri ve APK dosyaları aşağıda otomatik olarak listelenmektedir.",
+            loading: "Sürümler yükleniyor...",
+            download: "İndir",
+            noReleases: "Henüz hiç Release eklenmemiş veya APK bulunamadı.",
+            error: "Sürümler yüklenirken bir hata oluştu."
+        },
+        en: {
+            title: "📦 BreakTheWall - Releases",
+            desc: "All releases and APK files you added to your repository are listed automatically below.",
+            loading: "Loading releases...",
+            download: "Download",
+            noReleases: "No releases or APK files found yet.",
+            error: "An error occurred while loading releases."
+        },
+        de: {
+            title: "📦 BreakTheWall - Releases",
+            desc: "Alle Releases und APK-Dateien, die Sie zu Ihrem Repository hinzugefügt haben, werden unten automatisch aufgelistet.",
+            loading: "Releases werden geladen...",
+            download: "Herunterladen",
+            noReleases: "Keine Releases oder APK-Dateien gefunden.",
+            error: "Beim Laden der Releases ist ein Fehler aufgetreten."
+        },
+        ru: {
+            title: "📦 BreakTheWall - Releases",
+            desc: "Все релизы и APK-файлы, добавленные в ваш репозиторий, автоматически отображаются ниже.",
+            loading: "Загрузка релизов...",
+            download: "Скачать",
+            noReleases: "Релизы или APK-файлы не найдены.",
+            error: "Произошла ошибка при загрузке релизов."
+        },
+        es: {
+            title: "📦 BreakTheWall - Releases",
+            desc: "Todas las versiones y archivos APK que agregaste a tu repositorio se enumeran automáticamente a continuación.",
+            loading: "Cargando versiones...",
+            download: "Descargar",
+            noReleases: "No se encontraron versiones o archivos APK.",
+            error: "Ocurrió un error al cargar las versiones."
+        }
+    };
+
+    function changeLanguage() {
+        const lang = document.getElementById('langSelect').value;
+        document.getElementById('mainTitle').innerText = translations[lang].title;
+        document.getElementById('desc').innerText = translations[lang].desc;
+        const loadingEl = document.getElementById('loadingText');
+        if (loadingEl) loadingEl.innerText = translations[lang].loading;
+        fetchReleases();
+    }
+
+    async function fetchReleases() {
+        const contentDiv = document.getElementById('content');
+        const lang = document.getElementById('langSelect').value;
+        
+        try {
+            // GitHub Releases API çağrısı
+            const response = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases`);
+            if (!response.ok) throw new Error('API Error');
+            
+            const releases = await response.json();
+
+            if (!releases || releases.length === 0) {
+                contentDiv.innerHTML = `<div class="loading">${translations[lang].noReleases}</div>`;
+                return;
+            }
+
+            let html = '';
+            releases.forEach(release => {
+                // Sadece içinde APK olan veya tüm varlıkları filtrele
+                const apkAssets = release.assets.filter(asset => asset.name.endsWith('.apk'));
+                
+                if (apkAssets.length > 0) {
+                    html += `
+                        <div class="release-card">
+                            <div class="release-header">
+                                <h3 class="release-title">${release.name || release.tag_name}</h3>
+                                <span class="release-tag">${release.tag_name}</span>
+                            </div>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">${release.body || ''}</p>
+                            <div class="asset-list">
+                    `;
+
+                    apkAssets.forEach(asset => {
+                        const fileSizeMB = (asset.size / (1024 * 1024)).toFixed(2);
+                        html += `
+                            <div class="asset-item">
+                                <div class="asset-info">
+                                    <strong>📱 ${asset.name}</strong>
+                                    <span>Boyut: ${fileSizeMB} MB | İndirme: ${asset.download_count}</span>
+                                </div>
+                                <a href="${asset.browser_download_url}" class="download-btn" target="_blank">${translations[lang].download}</a>
+                            </div>
+                        `;
+                    });
+
+                    html += `</div></div>`;
+                }
+            });
+
+            if (html === '') {
+                contentDiv.innerHTML = `<div class="loading">${translations[lang].noReleases}</div>`;
+            } else {
+                contentDiv.innerHTML = html;
+            }
+
+        } catch (err) {
+            contentDiv.innerHTML = `<div class="error">${translations[lang].error}</div>`;
+        }
+    }
+
+    fetchReleases();
+</script>
+
+</body>
+</html>
